@@ -1,0 +1,126 @@
+deleteall; # delete all previously existing setups in the file
+# 2. Define the optical waveguide.
+addrect;
+set('name', 'waveguide');
+set('x min', -10e-6);
+set('x max', 50e-6);
+set('y min', 0);
+set('y max', 0.22e-6);
+set('z', 0);
+set('z span', 10e-6);
+set('material','Si (Silicon) - Palik');
+
+# Define the Simulation Variables
+wavelength = 1.55e-6; # in meters
+pitch = 0.6e-6; # in meters
+etch_depth = 0.07e-6; # in meters
+duty_factor = 0.5;
+N = 15;
+cladding = 2e-6; # in meters
+
+x0 = 0;
+for (i=1:N) {
+x1 = x0 + (1-duty_factor)*pitch;
+addrect;
+set('name', 'tooth_' + num2str(i));
+set('x min', x0);
+set('x max', x1);
+set('y min', 0.22e-6 - etch_depth);
+set('y max', 0.22e-6);
+set('z', 0);
+set('z span', 10e-6);
+set('material', 'etch');
+x0 = x0 + pitch;
+addtogroup('grating_teeth');
+}
+# 4. Add the bottom silicon dioxide cladding.
+addrect;
+set('name', 'cladding');
+set('x min', -10e-6);
+set('x max', 50e-6);
+set('y min', -cladding);
+set('y max', 0);
+set('z', 0);
+set('z span', 20e-6);
+set('material', "Si (Silicon) - Palik");
+# 5. Introduce the substrate to our simulation.
+addrect;
+set('name', 'substrate');
+set('x min', -10e-6);
+set('x max', 50e-6);
+set('y min', -cladding-20e-6);
+set('y max', -cladding);
+set('z', 0);
+set('z span', 20e-6);
+set('material', "Si (Silicon) - Palik");
+# Introduce the Optical Source
+addmode;
+set('name', 'mode');
+set('injection axis', 'x-axis');
+set('direction', 'forward');
+set('x', -2.5e-6);
+set('y', 0.22e-6/2);
+set('y span', 0.22e-6+2*(3/4*cladding));
+set('z', 0);
+set('z span', 15e-6);
+set('wavelength start', wavelength);
+set('wavelength stop', wavelength);
+set('mode selection', 'fundamental TM mode');
+# Monitor the Simulation
+addpower;
+set('name', 'slice');
+set('monitor type', 'linear x');
+set('x', 0);
+set('x span', 200e-6);
+set('y', 0.5e-6);
+set('z', 0);
+addpower;
+set('name', 'profile');
+set('monitor type', '2D z-normal');
+set('x', 0);
+set('x span', 200e-6);
+set('y', 0);
+set('y span', 200e-6);
+set('z', 0);
+addpower;
+set('name', 'through');
+set('monitor type', 'linear Y');
+set('x', x0 + 1.25e-6);
+set('y', 0);
+set('y span', 0.22e-6+cladding/2);
+set('z', 0);
+addpower;
+set('name', 'leakage');
+set('monitor type', 'linear x');
+set('x', 0);
+set('x span', 200e-6);
+set('y', -cladding-1.25e-6);
+set('z', 0);
+# Define the Simulation Region
+fdtd_xmin = -5e-6;
+fdtd_xmax = x0+2.5e-6;
+fdtd_ymin = -cladding-2.5e-6;
+fdtd_ymax = 2.5e-6;
+fdtd_z = 0;
+addfdtd;
+set('dimension', '2D');
+set('auto shutoff min', 1e-4);
+set('x min', fdtd_xmin);
+set('x max', fdtd_xmax);
+set('y min', fdtd_ymin);
+set('y max', fdtd_ymax);
+set('z', 0);
+# Add a simulation mesh.
+addmesh;
+set('dx', wavelength/40);
+set('dy', wavelength/40);
+set('dz', wavelength/40);
+set('x', 0);
+set('x span', 200e-6);
+set('y min', -0.25e-6);
+set('y max', 0.22e-6+0.25e-6);
+set('z', 0);
+
+
+
+    
